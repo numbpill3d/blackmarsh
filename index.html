@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackmarsh - Chronicles of a Dimensional Vagabond</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary-dark: #0d0a0f;
+            --secondary-dark: #1a1420;
+            --accent-purple: #3d2b47;
+            --accent-gold: #c9a96e;
+            --accent-green: #2d4a3e;
+            --text-light: #e8dcc6;
+            --text-gold: #d4af37;
+            --blood-red: #5c1e1e;
+            --shadow-blue: #1e2a5c;
+        }
+        
+        body {
+            font-family: 'Spectral', serif;
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 50%, var(--accent-purple) 100%);
+            color: var(--text-light);
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.3;
+        }
+        
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><filter id="noise"><feTurbulence baseFrequency="0.9" numOctaves="4" seed="2"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.1"/></svg>');
+            animation: noiseShift 20s infinite linear;
+        }
+        
+        @keyframes noiseShift {
+            0% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-5px) translateY(-5px); }
+            50% { transform: translateX(5px) translateY(-5px); }
+            75% { transform: translateX(-5px) translateY(5px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        header {
+            background: linear-gradient(90deg, rgba(13,10,15,0.95) 0%, rgba(26,20,32,0.95) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--accent-gold);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 0;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-gold);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .logo:hover {
+            color: var(--accent-gold);
+            text-shadow: 0 0 20px var(--accent-gold);
+            transform: scale(1.05);
+        }
+        
+        nav {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-item {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .nav-item:hover::before {
+            left: 100%;
+        }
+        
+        .nav-item:hover {
+            color: var(--text-gold);
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 4px;
+        }
+        
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--accent-gold);
+            transition: 0.3s;
+        }
+        
+        main {
+            flex: 1;
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            gap: 2rem;
+            padding: 2rem;
+        }
+        
+        .sidebar {
+            flex: 0 0 300px;
+            background: rgba(26,20,32,0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--accent-purple);
+            border-radius: 8px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 120px;
+        }
+        
+        .sidebar h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--text-gold);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            border-bottom: 1px solid var(--accent-purple);
+            padding-bottom: 0.5rem;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar li {
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: var(--accent-gold);
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar li:hover {
+            color: var(--text-gold);
+            transform: translateX(5px);
+        }
+        
+        .sidebar li:hover::before {
+            color: var(--text-gold);
+            transform: rotate(90deg);
+        }
+        
+        .content-area {
+            flex: 1;
+            background: rgba(26,20,32,0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--accent-purple);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .hero-section {
+            position: relative;
+            height: 400px;
+            background: linear-gradient(135deg, var(--shadow-blue) 0%, var(--blood-red) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        .three-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            background: rgba(0,0,0,0.7);
+            padding: 2rem;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .hero-title {
+            font-family: 'Cinzel', serif;
+            font-size: 3rem;
+            color: var(--text-gold);
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 2px 2px 8px rgba(0,0,0,0.8), 0 0 20px var(--text-gold); }
+            to { text-shadow: 2px 2px 8px rgba(0,0,0,0.8), 0 0 30px var(--accent-gold), 0 0 40px var(--accent-gold); }
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            font-style: italic;
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+        
+        .tab-container {
+            background: rgba(13,10,15,0.8);
+        }
+        
+        .tab-nav {
+            display: flex;
+            background: rgba(45,74,62,0.3);
+            border-bottom: 2px solid var(--accent-gold);
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--accent-gold);
+            transition: width 0.3s ease;
+        }
+        
+        .tab-button:hover,
+        .tab-button.active {
+            background: rgba(61,43,71,0.5);
+            color: var(--text-gold);
+        }
+        
+        .tab-button.active::after {
+            width: 100%;
+        }
+        
+        .tab-content {
+            padding: 2rem;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .main-content {
+            background: rgba(26,20,32,0.4);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--accent-purple);
+        }
+        
+        .content-widget {
+            background: rgba(45,74,62,0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--accent-green);
+            margin-bottom: 1rem;
+        }
+        
+        .widget-title {
+            font-family: 'Cinzel', serif;
+            color: var(--text-gold);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .scrollbox {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(13,10,15,0.6);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--accent-purple);
+        }
+        
+        .scrollbox::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .scrollbox::-webkit-scrollbar-track {
+            background: var(--primary-dark);
+        }
+        
+        .scrollbox::-webkit-scrollbar-thumb {
+            background: var(--accent-gold);
+            border-radius: 4px;
+        }
+        
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .gallery-item {
+            aspect-ratio: 1;
+            background: linear-gradient(45deg, var(--accent-purple), var(--accent-green));
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .gallery-item::before {
+            content: '🖼';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            opacity: 0.7;
+        }
+        
+        .gallery-item:hover {
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+        }
+        
+        .collapsible {
+            margin: 1rem 0;
+        }
+        
+        .collapsible-header {
+            background: rgba(92,30,30,0.3);
+            padding: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 1px solid var(--blood-red);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .collapsible-header:hover {
+            background: rgba(92,30,30,0.5);
+        }
+        
+        .collapsible-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .collapsible.open .collapsible-icon {
+            transform: rotate(180deg);
+        }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(13,10,15,0.6);
+            border: 1px solid var(--accent-purple);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+        }
+        
+        .collapsible.open .collapsible-content {
+            max-height: 500px;
+            padding: 1rem;
+        }
+        
+        .popup-trigger {
+            color: var(--accent-gold);
+            cursor: pointer;
+            text-decoration: underline;
+            transition: all 0.3s ease;
+        }
+        
+        .popup-trigger:hover {
+            color: var(--text-gold);
+            text-shadow: 0 0 10px var(--accent-gold);
+        }
+        
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .popup-content {
+            background: linear-gradient(135deg, var(--secondary-dark), var(--accent-purple));
+            padding: 2rem;
+            border-radius: 8px;
+            border: 2px solid var(--accent-gold);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--accent-gold);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .popup-close:hover {
+            color: var(--text-gold);
+            transform: scale(1.2);
+        }
+        
+        .animated-text {
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: 2px solid var(--accent-gold);
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--accent-gold); }
+        }
+        
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .floating-element {
+            position: absolute;
+            color: var(--accent-gold);
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+        
+        footer {
+            background: linear-gradient(90deg, rgba(13,10,15,0.95) 0%, rgba(26,20,32,0.95) 100%);
+            border-top: 2px solid var(--accent-gold);
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .footer-section h4 {
+            font-family: 'Cinzel', serif;
+            color: var(--text-gold);
+            margin-bottom: 1rem;
+        }
+        
+        .footer-section a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-section a:hover {
+            color: var(--accent-gold);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--accent-purple), var(--accent-green));
+            color: var(--text-light);
+            border: 1px solid var(--accent-gold);
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Spectral', serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, var(--accent-green), var(--accent-purple));
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+            
+            nav {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: rgba(26,20,32,0.95);
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            nav.active {
+                display: flex;
+            }
+            
+            main {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                flex: none;
+                position: static;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .tab-nav {
+                flex-wrap: wrap;
+            }
+            
+            .tab-button {
+                flex: 1 1 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    <div class="noise-overlay"></div>
+    <div class="floating-elements"></div>
+    
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">BLACKMARSH</div>
+                <nav id="navigation">
+                    <a href="#chronicles" class="nav-item">Chronicles</a>
+                    <a href="#shadowscale" class="nav-item">Shadowscale</a>
+                    <a href="#magicks" class="nav-item">Magicks</a>
+                    <a href="#cartography" class="nav-item">Cartography</a>
+                    <a href="#codex" class="nav-item">Codex</a>
+                </nav>
+                <div class="hamburger" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </header>
+        
+        <main>
+            <aside class="sidebar">
+                <h3>Dimensional Rifts</h3>
+                <ul>
+                    <li onclick="showPopup('rift1')">Portal to Mundus</li>
+                    <li onclick="showPopup('rift2')">Oblivion Gates</li>
+                    <li onclick="showPopup('rift3')">Dwemer Ruins</li>
+                    <li onclick="showPopup('rift4')">Ayleid Wells</li>
+                    <li onclick="showPopup('rift5')">Dragon Breaks</li>
+                </ul>
+                
+                <h3>Shadowscale Artifacts</h3>
+                <div class="scrollbox">
+                    <p>▶ Blade of Woe - Whispers death itself</p>
+                    <p>▶ Scales of Truth - Reveals hidden paths</p>
+                    <p>▶ Hist Sap Vial - Liquid memories</p>
+                    <p>▶ Shadow Silk Cloak - Bends light</p>
+                    <p>▶ Argonian Wedding Ring - Binds souls across planes</p>
+                    <p>▶ Poison Needle Kit - Swift, silent endings</p>
+                    <p>▶ Lockpick of Sithis - Opens any door</p>
+                    <p>▶ Night Mother's Blessing - Divine protection</p>
+                </div>
+                
+                <h3>Quick Travel</h3>
+                <a href="#" class="btn">Fast Travel</a>
+            </aside>
+            
+            <div class="content-area">
+                <div class="hero-section">
+                    <canvas class="three-bg" id="threeBg"></canvas>
+                    <div class="hero-content">
+                        <h1 class="hero-title">Chronicles of Blackmarsh</h1>
+                        <p class="hero-subtitle">Where dimensional vagabonds find love among the shadows</p>
+                        <div class="animated-text">A tale written in starlight and poison...</div>
+                    </div>
+                </div>
+                
+                <div class="tab-container">
+                    <div class="tab-nav">
+                        <button class="tab-button active" onclick="switchTab(event, 'chronicles')">Chronicles</button>
+                        <button class="tab-button" onclick="switchTab(event, 'shadowscale')">My Shadowscale</button>
+                        <button class="tab-button" onclick="switchTab(event, 'magicks')">Dark Magicks</button>
+                        <button class="tab-button" onclick="switchTab(event, 'realm')">The Realm</button>
+                    </div>
+                    
+                    <div id="chronicles" class="tab-content active">
+                        <div class="content-grid">
+                            <div class="main-content">
+                                <h2 style="color: var(--text-gold); font-family: 'Cinzel', serif; margin-bottom: 1rem;">The Dimensional Vagabond's Tale</h2>
+                                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                                    I fell through the void between worlds, tumbling through kaleidoscopic eternities until I landed—broken, bleeding, beautiful—in the fetid embrace of Blackmarsh. The Hist trees whispered secrets in languages that predated mortal understanding, their ancient bark weeping sap like tears of forgotten gods.
+                                </p>
+                                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                                    It was there, in that primordial swampland where shadow and substance dance their eternal waltz, that I first glimpsed her—my beloved Shadowscale. She moved like liquid darkness, each step a symphony of lethal grace, her scales catching moonlight like fragments of emerald dreams.
+                                </p>
+                                
+                                <div class="collapsible">
+                                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                                        <span>The First Encounter</span>
+                                        <span class="collapsible-icon">▼</span>
+                                    </div>
+                                    <div class="collapsible-content">
+                                        <p>Her blade was at my throat before I could blink, its edge sharp as crystallized winter. "Dimensional filth," she hissed, but her voice carried the melody of distant storms. In that moment, I knew I would gladly die by her hand a thousand times if it meant hearing that voice again.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="collapsible">
+                                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                                        <span>The Courtship of Shadows</span>
+                                        <span class="collapsible-icon">▼</span>
+                                    </div>
+                                    <div class="collapsible-content">
+                                        <p>Our love bloomed like nightshade in moonlight—beautiful, dangerous, intoxicating. She taught me the ancient ways of Sithis, the art of dealing death with surgical precision. I showed her the secrets of dimensional magic, how to bend reality like wet clay in knowing hands.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="content-widget">
+                                    <div class="widget-title">Image Gallery</div>
+                                    <div class="image-gallery">
+                                        <div class="gallery-item" onclick="showPopup('gallery1')"></div>
+                                        <div class="gallery-item" onclick="showPopup('gallery2')"></div>
+                                        <div class="gallery-item" onclick="showPopup('gallery3')"></div>
+                                        <div class="gallery-item" onclick="showPopup('gallery4')"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="content-widget">
+                                    <div class="widget-title">Arcane Measurements</div>
+                                    <div style="background: rgba(13,10,15,0.6); padding: 1rem; border-radius: 4px;">
+                                        <p>Dimensional Stability: <span style="color: var(--accent-gold);">73.2%</span></p>
+                                        <p>Shadow Essence: <span style="color: var(--accent-gold);">91.7%</span></p>
+                                        <p>Hist Connection: <span style="color: var(--accent-gold);">88.4%</span></p>
+                                        <p>Love Intensity: <span style="color: var(--accent-gold);">∞</span></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="content-widget">
+                                    <div class="widget-title">Recent Whispers</div>
+                                    <div class="scrollbox">
+                                        <p style="margin-bottom: 0.5rem;">• The Hist speaks of ancient prophecies...</p>
+                                        <p style="margin-bottom: 0.5rem;">• Dark Brotherhood contracts multiply...</p>
+                                        <p style="margin-bottom: 0.5rem;">• Daedra stir in distant realms...</p>
+                                        <p style="margin-bottom: 0.5rem;">• New dimensional rifts detected...</p>
+                                        <p style="margin-bottom: 0.5rem;">• Shadowscales gather in secret...</p>
+                                        <p style="margin-bottom: 0.5rem;">• The Night Mother's voice grows stronger...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="shadowscale" class="tab-content">
+                        <div class="content-grid">
+                            <div class="main-content">
+                                <h2 style="color: var(--text-gold); font-family: 'Cinzel', serif; margin-bottom: 1rem;">My Beloved Assassin</h2>
+                                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                                    She is shadow made flesh, death given form and purpose. Her scales shimmer with an otherworldly beauty—each one a tiny mirror reflecting the darkness of her soul and the light of her love. Born under the sign of the Shadow, blessed by Sithis himself, she moves through the world like a whispered prayer to forgotten gods.
+                                </p>
+                                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                                    When she kills, it is art—brutal, precise, beautiful. Her victims die with expressions of wonder, as if in their final moments they glimpsed something transcendent. I have watched her work from the shadows, seen how she makes death into dance, murder into music.
+                                </p>
+                                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                                    But in our private moments, when the masks fall away and the darkness recedes, she is vulnerable—soft scales against softer skin, whispered endearments in ancient Jel, promises made in blood and starlight.
+                                </p>
+                                
+                                <div class="content-widget">
+                                    <div class="widget-title">Her Arsenal</div>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                        <div style="background: rgba(92,30,30,0.3); padding: 1rem; border-radius: 4px;">
+                                            <strong>Ebony Dagger</strong><br>
+                                            Forged in Oblivion's fires
+                                        </div>
+                                        <div style="background: rgba(30,46,92,0.3); padding: 1rem; border-radius: 4px;">
+                                            <strong>Poison Vials</strong><br>
+                                            Distilled essence of nightmares
+                                        </div>
+                                        <div style="background: rgba(45,74,62,0.3); padding: 1rem; border-radius: 4px;">
+                                            <strong>Shadow Cloak</strong><br>
+                                            Woven from midnight itself
+                                        </div>
+                                        <div style="background: rgba(61,43,71,0.3); padding: 1rem; border-radius: 4px;">
+                                            <strong>Lockpicks</strong><br>
+                                            Shaped from dragon bone
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="content-widget">
+                                    <div class="widget-title">Love Letters</div>
+                                    <div class="scrollbox">
+                                        <div style="font-style: italic; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent-gold);">
+                                            "My dimensional wanderer, you have shown me galaxies I never dreamed existed. In your eyes, I see the birth and death of stars..."
+                                        </div>
+                                        <div style="font-style: italic; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent-gold);">
+                                            "The Hist whispers your name in languages older than time. Even the trees know we are meant to be..."
+                                        </div>
+                                        <div style="font-style: italic; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.3); border-left: 3px solid var(--accent-gold);">
+                                            "Tonight I dreamed we danced among the moons of distant worlds, our souls entwined like serpents of shadow and light..."
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="content-widget">
+                                    <div class="widget-title">Contract Status</div>
+                                    <div style="font-family: monospace; background: rgba(13,10,15,0.8); padding: 1rem; border-radius: 4px;">
+                                        <p style="color: var(--accent-gold);">ACTIVE CONTRACTS: 7</p>
+                                        <p style="color: var(--text-light);">COMPLETED: 847</p>
+                                        <p style="color: var(--blood-red);">FAILED: 0</p>
+                                        <p style="color: var(--accent-green);">REPUTATION: LEGENDARY</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="magicks" class="tab-content">
+                        <div class="content-grid">
+                            <div class="main-content">
+                                <h2 style="color: var(--text-gold); font-family: 'Cinzel', serif; margin-bottom: 1rem;">Forbidden Arts & Dark Sciences</h2>
+                                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                                    In my journeys between dimensions, I have learned magicks that would make the College of Winterhold weep with envy and terror. Arts that bend reality like heated metal, spells that unravel the very fabric of existence, enchantments that bind souls across infinite planes.
+                                </p>
+                                
+                                <div class="collapsible">
+                                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                                        <span>Dimensional Manipulation</span>
+                                        <span class="collapsible-icon">▼</span>
+                                    </div>
+                                    <div class="collapsible-content">
+                                        <p>The art of folding space-time like origami, creating pockets of twisted reality where cause and effect dance to alien rhythms. I have taught my beloved to step through shadows that exist in seventeen dimensions simultaneously.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="collapsible">
+                                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                                        <span>Soul Binding Rituals</span>
+                                        <span class="collapsible-icon">▼</span>
+                                    </div>
+                                    <div class="collapsible-content">
+                                        <p>Ancient ceremonies that link consciousness across the void. Our souls are bound with threads of crystallized moonlight and dragon's blood, ensuring we will find each other in every incarnation, every reality, every possible world.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="collapsible">
+                                    <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                                        <span>Temporal Assassination</span>
+                                        <span class="collapsible-icon">▼</span>
+                                    </div>
+                                    <div class="collapsible-content">
+                                        <p>The ultimate Dark Brotherhood technique—killing someone before they were born, erasing them from the timeline itself. Together, we have perfected this art, leaving no trace save the whispered memory of what never was.</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(92,30,30,0.2); border: 1px solid var(--blood-red); border-radius: 8px;">
+                                    <h3 style="color: var(--text-gold); font-family: 'Cinzel', serif; margin-bottom: 1rem;">Warning</h3>
+                                    <p style="font-style: italic;">These magicks are not for the faint of heart or weak of will. They require sacrifices—of sanity, of innocence, of the comfortable illusions that keep mortals sleeping peacefully. Practice them at your own risk.</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="content-widget">
+                                    <div class="widget-title">Spell Components</div>
+                                    <div class="scrollbox">
+                                        <p>◆ Void Salt - Harvested from between worlds</p>
+                                        <p>◆ Nightmare Essence - Distilled from terror</p>
+                                        <p>◆ Stardust - Collected during solar eclipses</p>
+                                        <p>◆ Dragon's Tears - Rare beyond measure</p>
+                                        <p>◆ Hist Sap - Ancient tree blood</p>
+                                        <p>◆ Oblivion Stone - Fragments of deadra realm</p>
+                                        <p>◆ Time Crystals - Solidified moments</p>
+                                        <p>◆ Soul Gems - Various sizes</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="content-widget">
+                                    <div class="widget-title">Spell Book</div>
+                                    <div style="background: rgba(13,10,15,0.6); padding: 1rem; border-radius: 4px;">
+                                        <p style="margin-bottom: 0.5rem;"><span class="popup-trigger" onclick="showPopup('spell1')">Dimensional Rift</span> - Master</p>
+                                        <p style="margin-bottom: 0.5rem;"><span class="popup-trigger" onclick="showPopup('spell2')">Shadow Walk</span> - Expert</p>
+                                        <p style="margin-bottom: 0.5rem;"><span class="popup-trigger" onclick="showPopup('spell3')">Soul Tether</span> - Master</p>
+                                        <p style="margin-bottom: 0.5rem;"><span class="popup-trigger" onclick="showPopup('spell4')">Temporal Echo</span> - Legendary</p>
+                                        <p style="margin-bottom: 0.5rem;"><span class="popup-trigger" onclick="showPopup('spell5')">Void Whisper</span> - Expert</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="realm" class="tab-content">
+                        <div class="content-grid">
+                            <div class="main-content">
+                                <h2 style="color: var(--text-gold); font-family: 'Cinzel', serif; margin-bottom: 1rem;">The Realm of Blackmarsh</h2>
+                                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                                    Blackmarsh—or Argonia, as the natives call it—is a realm where nature itself seems to dream dark dreams. The very air thrums with ancient magicks, where Hist trees older than civilization whisper secrets in languages that predate speech itself.
+                                </p>
+                                <p style="margin-bottom: 1rem; line-height: 1.6;">
+                                    This is no ordinary swampland. Here, the boundaries between the physical and spiritual worlds grow thin as morning mist. Ghosts walk openly among the living, spirits of long-dead Argonians seeking vengeance or redemption. The water itself pulses with otherworldly energy, capable of healing wounds or driving men mad with visions of cosmic truth.
+                                </p>
+                                
+                                <div class="image-gallery">
+                                    <div class="gallery-item" onclick="showPopup('realm1')"></div>
+                                    <div class="gallery-item" onclick="showPopup('realm2')"></div>
+                                    <div class="gallery-item" onclick="showPopup('realm3')"></div>
+                                    <div class="gallery-item" onclick="showPopup('realm4')"></div>
+                                    <div class="gallery-item" onclick="showPopup('realm5')"></div>
+                                    <div class="gallery-item" onclick="showPopup('realm6')"></div>
+                                </div>
+                                
+                                <h3 style="color: var(--text-gold); font-family: 'Cinzel', serif; margin: 2rem 0 1rem;">Notable Locations</h3>
+                                
+                                <div style="display: grid; gap: 1rem;">
+                                    <div style="background: rgba(45,74,62,0.3); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--accent-green);">
+                                        <h4 style="color: var(--text-gold); margin-bottom: 0.5rem;">The Shadowscale Sanctuary</h4>
+                                        <p>Hidden deep within the marsh, this ancient temple serves as the training ground for Argonia's most elite assassins. The walls themselves seem to absorb light, creating pockets of absolute darkness where death learns to dance.</p>
+                                    </div>
+                                    
+                                    <div style="background: rgba(61,43,71,0.3); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--accent-purple);">
+                                        <h4 style="color: var(--text-gold); margin-bottom: 0.5rem;">The Hist Grove Eternal</h4>
+                                        <p>A circle of twelve ancient Hist trees that have stood since the dawn of time. Their roots intertwine deep beneath the earth, creating a network of consciousness that spans the entire realm. Here, past and future converge in moments of perfect clarity.</p>
+                                    </div>
+                                    
+                                    <div style="background: rgba(92,30,30,0.3); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--blood-red);">
+                                        <h4 style="color: var(--text-gold); margin-bottom: 0.5rem;">The Crimson Pools</h4>
+                                        <p>Waters that run red with more than rust—these pools are said to be the tears of Sithis himself, shed for those who die in service to the Void. Drinking from them grants visions of death, both past and future.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="content-widget">
+                                    <div class="widget-title">Regional Map</div>
+                                    <div style="aspect-ratio: 1; background: linear-gradient(135deg, var(--accent-green), var(--primary-dark)); border-radius: 8px; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; top: 20%; left: 30%; width: 8px; height: 8px; background: var(--accent-gold); border-radius: 50%;" title="Shadowscale Sanctuary"></div>
+                                        <div style="position: absolute; top: 60%; left: 50%; width: 8px; height: 8px; background: var(--text-light); border-radius: 50%;" title="Hist Grove"></div>
+                                        <div style="position: absolute; top: 40%; left: 70%; width: 8px; height: 8px; background: var(--blood-red); border-radius: 50%;" title="Crimson Pools"></div>
+                                        <div style="position: absolute; bottom: 10%; right: 10%; color: var(--text-light); font-size: 0.8rem;">BLACKMARSH</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="content-widget">
+                                    <div class="widget-title">Weather Patterns</div>
+                                    <div style="background: rgba(13,10,15,0.6); padding: 1rem; border-radius: 4px;">
+                                        <p>Current: <span style="color: var(--accent-gold);">Ethereal Mist</span></p>
+                                        <p>Temperature: <span style="color: var(--text-light);">Pleasantly Humid</span></p>
+                                        <p>Magical Field: <span style="color: var(--accent-green);">Highly Active</span></p>
+                                        <p>Spirit Activity: <span style="color: var(--accent-purple);">Moderate</span></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="content-widget">
+                                    <div class="widget-title">Dimensional Portals</div>
+                                    <div class="scrollbox">
+                                        <p>◇ Portal to Mundus - Stable</p>
+                                        <p>◇ Oblivion Gate Echo - Flickering</p>
+                                        <p>◇ Aetherius Rift - Dangerous</p>
+                                        <p>◇ Hist Memory Portal - Active</p>
+                                        <p>◇ Void Tear - Sealed</p>
+                                        <p>◇ Dream Bridge - Lunar Cycle</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Dimensional Archives</h4>
+                    <p><a href="#">Memory Crystals</a></p>
+                    <p><a href="#">Planar Cartography</a></p>
+                    <p><a href="#">Void Theories</a></p>
+                    <p><a href="#">Timeline Fragments</a></p>
+                </div>
+                <div class="footer-section">
+                    <h4>Dark Brotherhood</h4>
+                    <p><a href="#">Contract Board</a></p>
+                    <p><a href="#">Training Grounds</a></p>
+                    <p><a href="#">Sacred Tenets</a></p>
+                    <p><a href="#">Night Mother's Wisdom</a></p>
+                </div>
+                <div class="footer-section">
+                    <h4>Mystical Contacts</h4>
+                    <p><a href="#">Hist Communion</a></p>
+                    <p><a href="#">Spirit Whispers</a></p>
+                    <p><a href="#">Dimensional Echoes</a></p>
+                    <p><a href="#">Shadow Network</a></p>
+                </div>
+            </div>
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--accent-purple); text-align: center;">
+                <p style="font-style: italic;">"In darkness, we find light. In shadow, we find truth. In love, we find eternity."</p>
+                <p style="margin-top: 0.5rem; color: var(--accent-gold);">- A Dimensional Vagabond's Creed</p>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Popups -->
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <button class="popup-close" onclick="hidePopup()">×</button>
+            <div id="popup-body"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Three.js background animation
+        let scene, camera, renderer, particles;
+        
+        function initThreeJS() {
+            const canvas = document.getElementById('threeBg');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, rect.width / rect.height, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+            renderer.setSize(rect.width, rect.height);
+            
+            // Create floating particles
+            const geometry = new THREE.BufferGeometry();
+            const particleCount = 1000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 20;
+                positions[i + 1] = (Math.random() - 0.5) * 20;
+                positions[i + 2] = (Math.random() - 0.5) * 20;
+                
+                colors[i] = 0.8 + Math.random() * 0.2;
+                colors[i + 1] = 0.6 + Math.random() * 0.4;
+                colors[i + 2] = 0.2 + Math.random() * 0.3;
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 0.05,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.7
+            });
+            
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+            
+            camera.position.z = 5;
+            
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (particles) {
+                particles.rotation.x += 0.001;
+                particles.rotation.y += 0.002;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Tab switching
+        function switchTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName('tab-content');
+            const tabButtons = document.getElementsByClassName('tab-button');
+            
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            document.getElementById(tabName).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+        
+        // Collapsible sections
+        function toggleCollapsible(element) {
+            const collapsible = element.parentElement;
+            collapsible.classList.toggle('open');
+        }
+        
+        // Mobile menu
+        function toggleMenu() {
+            const nav = document.getElementById('navigation');
+            nav.classList.toggle('active');
+        }
+        
+        // Popup system
+        const popupData = {
+            rift1: {
+                title: "Portal to Mundus",
+                content: "A shimmering gateway that connects to the mortal realm of Tamriel. Through its ethereal veil, one can glimpse the familiar landscapes of home, though crossing requires a price paid in memories and dreams."
+            },
+            rift2: {
+                title: "Oblivion Gates",
+                content: "Echoes of Martin Septim's sacrifice still linger here—ghostly portals that flicker between existence and void. Sometimes, if you listen carefully, you can hear the distant roar of daedric legions that never made it through."
+            },
+            spell1: {
+                title: "Dimensional Rift",
+                content: "Tears a hole in the fabric of reality itself, allowing passage between worlds. Requires 3 void crystals and a sacrifice of one cherished memory. Duration varies with caster's emotional state."
+            },
+            spell2: {
+                title: "Shadow Walk",
+                content: "Allows the caster to step into the spaces between shadows, becoming one with darkness itself. My beloved taught me this—her scales shimmer like starlight when she emerges from shadow's embrace."
+            },
+            gallery1: {
+                title: "The First Meeting",
+                content: "An artist's rendering of our fateful encounter beneath the crimson moon. Her blade at my throat, my heart in her hands—even before we spoke, we knew our destinies were intertwined."
+            }
+        };
+        
+        function showPopup(key) {
+            const popup = document.getElementById('popup');
+            const body = document.getElementById('popup-body');
+            const data = popupData[key];
+            
+            if (data) {
+                body.innerHTML = `<h3 style="color: var(--text-gold); font-family: 'Cinzel', serif; margin-bottom: 1rem;">${data.title}</h3><p>${data.content}</p>`;
+            } else {
+                body.innerHTML = `<h3 style="color: var(--text-gold); font-family: 'Cinzel', serif; margin-bottom: 1rem;">Mysterious Entry</h3><p>The shadows whisper secrets too dark for mortal comprehension. Some knowledge is best left hidden in the depths of the void...</p>`;
+            }
+            
+            popup.style.display = 'flex';
+        }
+        
+        function hidePopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
+        
+        // Floating elements
+        function createFloatingElements() {
+            const container = document.querySelector('.floating-elements');
+            const symbols = ['◆', '◇', '▲', '▼', '◀', '▶', '●', '○', '★', '☆'];
+            
+            for (let i = 0; i < 20; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                element.style.left = Math.random() * 100 + '%';
+                element.style.animationDelay = Math.random() * 20 + 's';
+                element.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(element);
+            }
+        }
+        
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', function() {
+            initThreeJS();
+            createFloatingElements();
+            
+            // Close popup when clicking outside
+            document.getElementById('popup').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hidePopup();
+                }
+            });
+            
+            // Resize handler for Three.js
+            window.addEventListener('resize', function() {
+                const canvas = document.getElementById('threeBg');
+                const rect = canvas.parentElement.getBoundingClientRect();
+                camera.aspect = rect.width / rect.height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(rect.width, rect.height);
+            });
+        });
+    </script>
+</body>
+</html>
